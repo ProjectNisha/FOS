@@ -1,0 +1,111 @@
+---------C++ code-----------
+
+#include <iostream>
+#include <cmath>
+
+using namespace std;
+
+int main()
+{
+    double FOSGeosynthetic=0.0;
+  double unitWeight = 19.6; // kN/m^3
+    double frictionAngle = 30.0; // degrees
+    double complementryangle = (90.0 - frictionAngle);
+    double cohesion = 0; // assumed cohesion = 0
+    double radius = 3.6; 
+    double AD = 3.0;
+    double DC = AD * tan(frictionAngle * M_PI / 180.0);
+      double a = 0.6;
+    double c = 0.9;
+    double drivingMoment= 187.0; 
+    double resistiveMoment= 170.0; //(calculated earlier in without geosynthetic solution)
+   double ultimateTension= 43.8;
+   double damagefactor=1.2; double durabilityfactor= 1.2;  double creepfactor=2.6;
+   double totalfactor= damagefactor*durabilityfactor* creepfactor;
+   double designstrength= ultimateTension/totalfactor;
+   // Anchorage Length: UK+L-US
+   double H= AD-c;
+   double I= AD- 2*c;
+   double L1=  sqrt(pow(radius, 2) - pow(I, 2));
+    double L2=  sqrt(pow(radius, 2) - pow(H, 2));
+     double L3=  sqrt(pow(radius, 2) - pow(AD, 2));
+     
+     double Lar1= ((a+2*c)/tan(complementryangle*M_PI / 180.0))+ radius- L1;
+     cout<< Lar1<<endl;
+     
+     double Laf1= radius- Lar1;
+     double Lar2= ((a+c)/tan(complementryangle*M_PI / 180.0))+radius-L2;
+     cout<< Lar2<<endl;
+     double Laf2= radius-Lar2;
+     double Lar3= (a/tan(complementryangle*M_PI / 180.0))+radius-L3;
+     cout<< Lar3<<endl;
+     double Laf3= radius- Lar3;
+     cout<< Laf3<<endl;
+     
+     double FOSPullout= 1.5;
+     double Rc=1;
+     double interactioncoefficient= 0.8;
+     double Scalecorrectionfactor= 0.8;
+     
+     //Allowable Pullout capacity
+     double Tpo1= (2* unitWeight*a*Lar1* interactioncoefficient* Scalecorrectionfactor * tan(frictionAngle* M_PI / 180.0)*Rc)/FOSPullout;
+     cout<<Tpo1<<endl;
+     double Tpo2= (2* unitWeight*(a+c)*Lar2* interactioncoefficient* Scalecorrectionfactor * tan(frictionAngle* M_PI / 180.0)*Rc)/FOSPullout;
+     cout<<Tpo2<<endl;
+     double Tpo3= (2* unitWeight*(a+2*c)*Lar3* interactioncoefficient* Scalecorrectionfactor * tan(frictionAngle* M_PI / 180.0)*Rc)/FOSPullout;
+     cout<<Tpo3<<endl;
+     
+     // weight of fill above geosynthetic layer1 in active side and pullout capacity calculation
+     double W1= 0.5* (2*Laf1- (a/tan(complementryangle*M_PI / 180.0)))* a*unitWeight;
+     cout<<W1<<endl;
+     double TPox= (2* W1* interactioncoefficient*Scalecorrectionfactor*tan(frictionAngle*M_PI / 180.0)*Rc)/FOSPullout;
+     cout<<TPox<<endl;
+     
+     double W2= 0.5* (2*Laf2- ((a+c)/tan(complementryangle*M_PI / 180.0)))* (a+c)*unitWeight;
+     double TPoy= (2* W2* interactioncoefficient*Scalecorrectionfactor*tan(frictionAngle*M_PI / 180.0)*Rc)/FOSPullout;
+     
+     double W3= 0.5* (2*Laf3- ((a+2*c)/tan(complementryangle*M_PI / 180.0)))* (a+2*c)*unitWeight;
+
+     double TPoz= (2* W3* interactioncoefficient*Scalecorrectionfactor*tan(frictionAngle*M_PI / 180.0)*Rc)/FOSPullout;
+    
+     cout<<TPoz<<endl;
+     cout<<W3<<endl;
+     cout<<TPoy<<endl;
+     
+    double z1, z2, z3; 
+if (Tpo1 < TPox && Tpo1 < designstrength) {
+    z1 = min(designstrength, min(TPox, Tpo1));
+} else {
+    z1 = 0.0; // Initialize z to a default value if the condition is not met
+}
+
+cout << "The design strength for geosynthetic layer1: "<< z1 << "KN/m"<< endl;
+     
+     if(Tpo2>designstrength && TPoy> designstrength){
+         z2= min(designstrength, min(TPoy, Tpo2));
+     }
+     else{
+         z2=0.0;
+     }
+     
+     cout << "The design strength for geosynthetic layer2: "<< z2 << "KN/m"<< endl;
+   
+
+   if(Tpo3>designstrength && TPoz> designstrength){
+         z3= min(designstrength, min(TPoz, Tpo3));
+     }
+     else{
+         z3=0.0;
+     }
+     
+     cout << "The design strength for geosynthetic layer3: "<< z3 << "KN/m"<< endl;
+   
+    
+    // Total resistive moment by 3 layers of geosynthetic
+   double Mg= z1*(AD-2*c)+z2*(AD-c)+z3*AD;
+   cout<<" Resistive Moment: "<<Mg << "KN-m/m"<<endl;
+   
+   FOSGeosynthetic= (resistiveMoment+Mg)/drivingMoment;
+    
+    cout<< "The factor of safety with Geosynthic(or for reinforced case) is:"<< FOSGeosynthetic<<endl;
+}
